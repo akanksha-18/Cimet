@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Multi-User Avatar Generator</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      background-color: #f0f0f0;
+    }
+    .avatar-container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: center;
+      max-width: 600px;
+    }
+    .avatar-wrapper {
+      position: relative;
+      margin: 10px;
+    }
+    .avatar {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 24px;
+      color: white;
+      transition: background-color 0.3s ease;
+    }
+    .delete-btn {
+      position: absolute;
+      top: -5px;
+      right: -5px;
+      width: 20px;
+      height: 20px;
+      background-color: red;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 12px;
+    }
+    .add-btn {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background-color: #2ecc71;
+      border: none;
+      color: white;
+      cursor: pointer;
+      font-size: 24px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin: 10px;
+    }
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.4);
+    }
+    .modal-content {
+      background-color: #fefefe;
+      margin: 15% auto;
+      padding: 20px;
+      border: 1px solid #888;
+      width: 300px;
+      text-align: center;
+    }
+    .input-field {
+      margin: 10px 0;
+      padding: 5px;
+      width: 90%;
+    }
+    .submit-btn {
+      padding: 10px 15px;
+      background-color: #2ecc71;
+      border: none;
+      color: white;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="avatar-container" id="avatarContainer">
+    <button class="add-btn" id="addBtn">+</button>
+  </div>
+
+  <div id="modal" class="modal">
+    <div class="modal-content">
+      <input type="text" id="nameInput" placeholder="Enter your name" class="input-field">
+      <button class="submit-btn" id="submitBtn">Add User</button>
+    </div>
+  </div>
+
+  <script>
+    const addBtn = document.getElementById('addBtn');
+    const modal = document.getElementById('modal');
+    const nameInput = document.getElementById('nameInput');
+    const submitBtn = document.getElementById('submitBtn');
+    const avatarContainer = document.getElementById('avatarContainer');
+
+    let avatars = JSON.parse(localStorage.getItem('avatars')) || [];
+
+    function saveAvatars() {
+      localStorage.setItem('avatars', JSON.stringify(avatars));
+    }
+
+    function getRandomColor() {
+      const letters = '0123456789ABCDEF';
+      let color = '#';
+      for (let i = 0; i < 6; i++) {
+        color += letters[Math.floor(Math.random() * 16)];
+      }
+      return color;
+    }
+
+    function createAvatar(name, color) {
+      const avatarWrapper = document.createElement('div');
+      avatarWrapper.classList.add('avatar-wrapper');
+
+      const avatar = document.createElement('div');
+      avatar.classList.add('avatar');
+      avatar.innerText = name[0].toUpperCase();
+      avatar.style.backgroundColor = color;
+
+      const deleteBtn = document.createElement('button');
+      deleteBtn.classList.add('delete-btn');
+      deleteBtn.innerHTML = '&times;';
+      deleteBtn.onclick = function() {
+        avatarContainer.removeChild(avatarWrapper);
+        avatars = avatars.filter(a => a.name !== name);
+        saveAvatars();
+      };
+
+      avatarWrapper.appendChild(avatar);
+      avatarWrapper.appendChild(deleteBtn);
+      avatarContainer.insertBefore(avatarWrapper, addBtn);
+    }
+
+    function addAvatar() {
+      const name = nameInput.value.trim();
+      if (name) {
+        const color = getRandomColor();
+        avatars.push({ name, color });
+        createAvatar(name, color);
+        saveAvatars();
+        nameInput.value = '';
+        modal.style.display = 'none';
+      }
+    }
+
+    function loadAvatars() {
+      avatars.forEach(avatar => {
+        createAvatar(avatar.name, getRandomColor());
+      });
+    }
+
+    addBtn.onclick = () => modal.style.display = 'block';
+    submitBtn.onclick = addAvatar;
+    nameInput.onkeypress = (e) => {
+      if (e.key === 'Enter') addAvatar();
+    };
+
+    window.onclick = (e) => {
+      if (e.target === modal) modal.style.display = 'none';
+    };
+
+    loadAvatars();
+  </script>
+</body>
+</html>
